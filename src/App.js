@@ -33,6 +33,12 @@ function configReducer(state, { type, payload }) {
       return { ...state, text: [payload] };
     case "priority":
       return { ...state, priority: !state.priority };
+    case "setTask":
+      return { text: "", priority: false, tasks: payload };
+    case "toggle":
+      return { ...state, tasks: payload };
+    case "remove":
+      return { ...state, tasks: payload };
     default:
       throw new Error("Invalid action");
   }
@@ -44,33 +50,33 @@ export default function App() {
     priority: false,
     tasks: [{ text: "This is an example task", priority: false }],
   };
+
   const [state, dispatch] = useReducer(configReducer, initValues);
-  const [data, setData] = useState({ text: "", priority: false });
-  const [tasks, setTasks] = useState([
-    { text: "This is an example task", priority: false },
-  ]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (data.text === "") return;
-    setTasks([...tasks, data]);
-    setData({ text: "", priority: false });
+    if (state.text === "") return;
+    const newArray = [...state.tasks];
+    const newData = { text: state.text[0], priority: state.priority };
+    newArray.push(newData);
+    dispatch({ type: "setTask", payload: newArray });
   };
 
   const handleRemove = (index) => {
-    const newTasks = [...tasks];
+    const newTasks = [...state.tasks];
     newTasks.splice(index, 1);
-    setTasks(newTasks);
+    dispatch({ type: "remove", payload: newTasks });
   };
 
   const togglePriority = (index) => {
-    const newTasks = tasks.map((task, i) => {
+    console.log(index);
+    const newTasks = state.tasks.map((task, i) => {
       if (i === index) {
         task.priority = !task.priority;
       }
       return task;
     });
-    setTasks(newTasks);
+    dispatch({ type: "toggle", payload: newTasks });
   };
 
   return (
@@ -121,7 +127,7 @@ export default function App() {
             gap: 8px;
           `}
         >
-          {tasks.map((task, index) => (
+          {state.tasks.map((task, index) => (
             <Card key={index}>
               <FaStar
                 css={css`
