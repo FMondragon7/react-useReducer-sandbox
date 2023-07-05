@@ -1,5 +1,5 @@
 /** @jsxImportSource @emotion/react */
-import React, { useState } from "react";
+import React, { useReducer, useState } from "react";
 import { Global, css } from "@emotion/react";
 import { FaTrash, FaStar } from "react-icons/fa";
 
@@ -27,15 +27,28 @@ const globalStyles = css`
   }
 `;
 
+function configReducer(state, { type, payload }) {
+  switch (type) {
+    case "text":
+      return { ...state, text: [payload] };
+    case "priority":
+      return { ...state, priority: !state.priority };
+    default:
+      throw new Error("Invalid action");
+  }
+}
+
 export default function App() {
+  const initValues = {
+    text: "",
+    priority: false,
+    tasks: [{ text: "This is an example task", priority: false }],
+  };
+  const [state, dispatch] = useReducer(configReducer, initValues);
   const [data, setData] = useState({ text: "", priority: false });
   const [tasks, setTasks] = useState([
-    { text: "This is an example task", priority: false }
+    { text: "This is an example task", priority: false },
   ]);
-
-  const handleChange = (name, value) => {
-    setData({ ...data, [name]: value });
-  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -74,26 +87,24 @@ export default function App() {
         >
           <Input
             name="text"
-            onChange={({ target: { name, value } }) =>
-              handleChange(name, value)
+            onChange={({ target: { value } }) =>
+              dispatch({ type: "text", payload: value })
             }
-            value={data.text}
+            value={state.text}
           />
           <Input
             id="priority"
             name="priority"
             type="checkbox"
-            checked={data.priority}
+            checked={state.priority}
             hidden={true}
-            onChange={({ target: { name, checked } }) =>
-              handleChange(name, checked)
-            }
+            onChange={() => dispatch({ type: "priority" })}
           />
           <Card>
             <label htmlFor="priority">
               <FaStar
                 css={css`
-                  color: ${data.priority ? "orange" : "lightgrey"};
+                  color: ${state.priority ? "orange" : "lightgrey"};
                   cursor: pointer;
                   user-select: none;
                 `}
